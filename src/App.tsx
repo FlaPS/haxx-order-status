@@ -2,10 +2,7 @@ import React from 'react'
 const reader = require("g-sheets-api");
 import * as B from 'react-bootstrap'
 const Form = B.Form
-const readerOptions = {
-  sheetId: "1UKdAL7kjiJls-2Jmji1H4zfsC_WCvz0E41uXKoJ0wBw",
-  returnAllResults: false
-};
+
 
 const orderProp = 'Заказ'
 const statusProp = 'СТАТУС'
@@ -20,6 +17,10 @@ export default () => {
     const [orderId, setOrderId] = React.useState(undefined as string)
     const [loading, setLoading] = React.useState(false)
     React.useEffect(() => {
+        const readerOptions = {
+            sheetId: window.sheetId || "1UKdAL7kjiJls-2Jmji1H4zfsC_WCvz0E41uXKoJ0wBw",
+            returnAllResults: false
+        };
         reader(readerOptions, (results) => {
     
             let map = {}
@@ -30,6 +31,15 @@ export default () => {
 
     }, []);
 
+    const onSubmit = async (e) => {
+        e.preventDefault()
+        if(loading || orderId)
+            return
+        setLoading(true)
+        await sleep(500)
+        setOrderId(tempOrderId)
+        setLoading(false)
+    }
     let inner
     if(!data)
         inner =  <Frame >Загрузка</Frame>
@@ -38,12 +48,7 @@ export default () => {
             <Form.Label>Номер заказа</Form.Label>
             <Form.Control size={'lg'} type="text" disabled={orderId !== undefined} placeholder="Введите номер заказа из договора"  value={tempOrderId} onChange={e => setTempOrderId(e.target.value)}/>
         </Form.Group>
-        const check = <B.Button style={{width:' 100%', opacity: loading ? 0.6: 1}} disabled={loading} size={'lg'} type="button" className="btn btn-primary" onClick={async () => {
-            setLoading(true)
-            await sleep(500)
-            setOrderId(tempOrderId)
-            setLoading(false)
-        }}>Проверить заказ</B.Button>
+        const check = <B.Button  style={{width:' 100%', opacity: loading ? 0.6: 1}} disabled={loading} size={'lg'} type="submit" className="btn btn-primary" >Проверить заказ</B.Button>
         const back = <B.Button  style={{width:' 100%'}} size={'lg'} type="button" className="btn btn-secondary" onClick={() => {
             setOrderId(undefined)
             setTempOrderId(undefined)
@@ -69,7 +74,7 @@ export default () => {
             inner = <Frame>{input}{check}</Frame>
         }
     }
-    return <B.Form className="container"><B.Row  style={{height: '120px'}}></B.Row>{inner}</B.Form>
+    return <B.Form action={"#"} className="container" onSubmit={onSubmit} ><B.Row  style={{height: '120px'}}></B.Row>{inner}</B.Form>
 }
 
 const Frame = ({children}) => {
